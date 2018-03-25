@@ -6,12 +6,11 @@ from sklearn.preprocessing import MinMaxScaler
 import matplotlib.pyplot as plt
 
 # Import data
-data = pd.read_csv('eth-usd-max-original.csv')
+data = pd.read_csv('eth.csv')
+# data = pd.read_csv('btc.csv')
 
 # Drop date variable
 data = data.drop(['DATE'], 1)
-# data = data.drop(['market._cap'], 1)
-# data = data.drop(['total_volume'], 1)
 
 # Dimensions of dataset
 n = data.shape[0]
@@ -37,9 +36,9 @@ data_train = scaler.transform(data_train)
 data_test = scaler.transform(data_test)
 
 # Build X and y
-X_train = data_train[:, 1:]
+X_train = data_train[:,:]
 y_train = data_train[:, 0]
-X_test = data_test[:, 1:]
+X_test = data_test[:,:]
 y_test = data_test[:, 0]
 # print("X_train", X_train)
 # print("y_train", y_train)
@@ -124,7 +123,7 @@ line2, = ax1.plot(y_test * 0.5)
 plt.show()
 
 # Fit neural net
-batch_size = 20
+batch_size = 36
 mse_train = []
 mse_test = []
 
@@ -148,7 +147,7 @@ for e in range(epochs):
         batch_x = X_train[start:start + batch_size]
         batch_y = y_train[start:start + batch_size]
         # Run optimizer with batch
-        net.run(mse, feed_dict={X: batch_x, Y: batch_y})
+        net.run(opt, feed_dict={X: batch_x, Y: batch_y})
 
         # Show progress
         # if np.mod(i, 50) == 0:
