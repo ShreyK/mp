@@ -36,9 +36,9 @@ data_train = scaler.transform(data_train)
 data_test = scaler.transform(data_test)
 
 # Build X and y
-X_train = data_train[:, 1:]
+X_train = data_train[:,:]
 y_train = data_train[:, 0]
-X_test = data_test[:, 1:]
+X_test = data_test[:,:]
 y_test = data_test[:, 0]
 # print("X_train", X_train)
 # print("y_train", y_train)
