@@ -6,12 +6,11 @@ from sklearn.preprocessing import MinMaxScaler
 import matplotlib.pyplot as plt
 
 # Import data
-data = pd.read_csv('eth-usd-max-original.csv')
+data = pd.read_csv('eth.csv')
+# data = pd.read_csv('btc.csv')
 
 # Drop date variable
 data = data.drop(['DATE'], 1)
-# data = data.drop(['market._cap'], 1)
-# data = data.drop(['total_volume'], 1)
 
 # Dimensions of dataset
 n = data.shape[0]
@@ -51,10 +50,10 @@ n_stocks = X_train.shape[1]
 print("n_stocks", n_stocks)
 
 # Neurons
-n_neurons_1 = 1024
-n_neurons_2 = 512
-n_neurons_3 = 256
-n_neurons_4 = 128
+n_neurons_1 = 512
+n_neurons_2 = 256
+n_neurons_3 = 128
+n_neurons_4 = 64
 
 # Session
 net = tf.InteractiveSession()
@@ -109,7 +108,7 @@ line2, = ax1.plot(y_test * 0.5)
 plt.show()
 
 # Fit neural net
-batch_size = 74
+batch_size = 36
 mse_train = []
 mse_test = []
 
