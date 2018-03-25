@@ -51,10 +51,13 @@ n_stocks = X_train.shape[1]
 print("n_stocks", n_stocks)
 
 # Neurons
-n_neurons_1 = 1024
-n_neurons_2 = 512
-n_neurons_3 = 256
-n_neurons_4 = 128
+n_neurons_1 = 32
+n_neurons_2 = 16
+# n_neurons_3 = 256
+# n_neurons_4 = 128
+#n_neurons_5 = 64
+#n_neurons_6 = 32
+#n_neurons_7 = 16
 
 # Session
 net = tf.InteractiveSession()
@@ -73,29 +76,41 @@ W_hidden_1 = tf.Variable(weight_initializer([n_stocks, n_neurons_1]))
 bias_hidden_1 = tf.Variable(bias_initializer([n_neurons_1]))
 W_hidden_2 = tf.Variable(weight_initializer([n_neurons_1, n_neurons_2]))
 bias_hidden_2 = tf.Variable(bias_initializer([n_neurons_2]))
-W_hidden_3 = tf.Variable(weight_initializer([n_neurons_2, n_neurons_3]))
-bias_hidden_3 = tf.Variable(bias_initializer([n_neurons_3]))
-W_hidden_4 = tf.Variable(weight_initializer([n_neurons_3, n_neurons_4]))
-bias_hidden_4 = tf.Variable(bias_initializer([n_neurons_4]))
+# W_hidden_3 = tf.Variable(weight_initializer([n_neurons_2, n_neurons_3]))
+# bias_hidden_3 = tf.Variable(bias_initializer([n_neurons_3]))
+# W_hidden_4 = tf.Variable(weight_initializer([n_neurons_3, n_neurons_4]))
+# bias_hidden_4 = tf.Variable(bias_initializer([n_neurons_4]))
+#W_hidden_5 = tf.Variable(weight_initializer([n_neurons_4, n_neurons_5]))
+#bias_hidden_5 = tf.Variable(bias_initializer([n_neurons_5]))
+#W_hidden_6 = tf.Variable(weight_initializer([n_neurons_5, n_neurons_6]))
+#bias_hidden_6 = tf.Variable(bias_initializer([n_neurons_6]))
+#W_hidden_7 = tf.Variable(weight_initializer([n_neurons_6, n_neurons_7]))
+#bias_hidden_7 = tf.Variable(bias_initializer([n_neurons_7]))
 
 # Output weights
-W_out = tf.Variable(weight_initializer([n_neurons_4, 1]))
+W_out = tf.Variable(weight_initializer([n_neurons_2, 1]))
 bias_out = tf.Variable(bias_initializer([1]))
 
 # Hidden layer
 hidden_1 = tf.nn.relu(tf.add(tf.matmul(X, W_hidden_1), bias_hidden_1))
 hidden_2 = tf.nn.relu(tf.add(tf.matmul(hidden_1, W_hidden_2), bias_hidden_2))
-hidden_3 = tf.nn.relu(tf.add(tf.matmul(hidden_2, W_hidden_3), bias_hidden_3))
-hidden_4 = tf.nn.relu(tf.add(tf.matmul(hidden_3, W_hidden_4), bias_hidden_4))
+#hidden_3 = tf.nn.relu(tf.add(tf.matmul(hidden_2, W_hidden_3), bias_hidden_3))
+#hidden_4 = tf.nn.relu(tf.add(tf.matmul(hidden_3, W_hidden_4), bias_hidden_4))
+#hidden_5 = tf.nn.relu(tf.add(tf.matmul(hidden_4, W_hidden_5), bias_hidden_5))
+#hidden_6 = tf.nn.relu(tf.add(tf.matmul(hidden_5, W_hidden_6), bias_hidden_6))
+#hidden_7 = tf.nn.relu(tf.add(tf.matmul(hidden_6, W_hidden_7), bias_hidden_7))
 
 # Output layer (transpose!)
-out = tf.transpose(tf.add(tf.matmul(hidden_4, W_out), bias_out))
+out = tf.transpose(tf.add(tf.matmul(hidden_2, W_out), bias_out))
 
 # Cost function
 mse = tf.reduce_mean(tf.squared_difference(out, Y))
 
 # Optimizer
+#opt = tf.train.AdadeltaOptimizer().minimize(mse)
 opt = tf.train.AdamOptimizer().minimize(mse)
+#opt = tf.train.GradientDescentOptimizer(learning_rate=0.1)
+#opt =
 
 # Init
 net.run(tf.global_variables_initializer())
@@ -109,7 +124,7 @@ line2, = ax1.plot(y_test * 0.5)
 plt.show()
 
 # Fit neural net
-batch_size = 74
+batch_size = 20
 mse_train = []
 mse_test = []
 
@@ -118,6 +133,7 @@ epochs = 10
 for e in range(epochs):
 
     # Shuffle training data
+    print("--------NEW EPOCH--------")
     shuffle_indices = np.random.permutation(np.arange(len(y_train)))
     X_train = X_train[shuffle_indices]
     y_train = y_train[shuffle_indices]
@@ -132,7 +148,7 @@ for e in range(epochs):
         batch_x = X_train[start:start + batch_size]
         batch_y = y_train[start:start + batch_size]
         # Run optimizer with batch
-        net.run(opt, feed_dict={X: batch_x, Y: batch_y})
+        net.run(mse, feed_dict={X: batch_x, Y: batch_y})
 
         # Show progress
         # if np.mod(i, 50) == 0:
@@ -145,4 +161,4 @@ for e in range(epochs):
         pred = net.run(out, feed_dict={X: X_test})
         line2.set_ydata(pred)
         plt.title('Epoch ' + str(e) + ', Batch ' + str(i))
-        plt.pause(.01)
+        plt.pause(.001)
