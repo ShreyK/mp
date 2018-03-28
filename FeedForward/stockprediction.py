@@ -2,58 +2,54 @@
 import tensorflow as tf
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import MinMaxScaler
 import matplotlib.pyplot as plt
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.model_selection import train_test_split
+
+# convert an array of values into a dataset matrix
+def create_dataset(dataset):
+  dataX, dataY = [], []
+  for i in range(len(dataset)-1):
+    dataX.append(dataset[i])
+    dataY.append(dataset[i + 1])
+  return np.asarray(dataX), np.asarray(dataY)
 
 # Import data
-data = pd.read_csv('eth.csv')
-# data = pd.read_csv('btc.csv')
+# data = pd.read_csv('eth.csv')
+data = pd.read_csv('btc.csv')
 
 # Drop date variable
 data = data.drop(['DATE'], 1)
-
-# Dimensions of dataset
-n = data.shape[0]
-p = data.shape[1]
+data = data.drop(['market_cap'], 1)
 
 # Make data a np.array
 data = data.values
 
-# Training and test data
-train_start = 0
-train_end = int(np.floor(0.8*n))
-test_start = train_end + 1
-test_end = n
-data_train = data[np.arange(train_start, train_end), :]
-data_test = data[np.arange(test_start, test_end), :]
-# print("data_train", data_train.size)
-# print("data_test", data_test.size)
+# normalize the dataset
+scaler = MinMaxScaler(feature_range=(0, 1))
+data = scaler.fit_transform(data)
 
-# Scale data
-scaler = MinMaxScaler(feature_range=(-1, 1))
-scaler.fit(data_train)
-data_train = scaler.transform(data_train)
-data_test = scaler.transform(data_test)
+#prepare the X and Y label
+X,y = create_dataset(data)
 
-# Build X and y
-X_train = data_train[:,:]
-y_train = data_train[:, 0]
-X_test = data_test[:,:]
-y_test = data_test[:, 0]
-# print("X_train", X_train)
-# print("y_train", y_train)
-# print("X_test", X_test)
-# print("y_test", y_test)
+#Take 80% of data as the training sample and 20% as testing sample
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, shuffle=False)
 
 # Number of stocks in training data
-n_stocks = X_train.shape[1]
-print("n_stocks", n_stocks)
+print("X_train cols", X_train.shape[1])
+print("X_train rows", X_train.shape[0])
+print("X_test cols", X_test.shape[1])
+print("X_test rows", X_test.shape[0])
+print("y_train cols", y_train.shape[1])
+print("y_train rows", y_train.shape[0])
+print("y_test cols", y_test.shape[1])
+print("y_test rows", y_test.shape[0])
 
 # Neurons
-n_neurons_1 = 512
-n_neurons_2 = 256
-n_neurons_3 = 128
-n_neurons_4 = 64
+n_neurons_1 = 2048
+n_neurons_2 = 1024
+n_neurons_3 = 512
+n_neurons_4 = 256
 
 # Session
 net = tf.InteractiveSession()
@@ -68,7 +64,7 @@ weight_initializer = tf.variance_scaling_initializer(mode="fan_avg", distributio
 bias_initializer = tf.zeros_initializer()
 
 # Hidden weights
-W_hidden_1 = tf.Variable(weight_initializer([n_stocks, n_neurons_1]))
+W_hidden_1 = tf.Variable(weight_initializer([X_train.shape[1], n_neurons_1]))
 bias_hidden_1 = tf.Variable(bias_initializer([n_neurons_1]))
 W_hidden_2 = tf.Variable(weight_initializer([n_neurons_1, n_neurons_2]))
 bias_hidden_2 = tf.Variable(bias_initializer([n_neurons_2]))
@@ -104,11 +100,11 @@ plt.ion()
 fig = plt.figure()
 ax1 = fig.add_subplot(111)
 line1, = ax1.plot(y_test)
-line2, = ax1.plot(y_test * 0.5)
+line2, = ax1.plot(y_test)
 plt.show()
 
 # Fit neural net
-batch_size = 36
+batch_size = 64
 mse_train = []
 mse_test = []
 
@@ -120,13 +116,9 @@ for e in range(epochs):
     shuffle_indices = np.random.permutation(np.arange(len(y_train)))
     X_train = X_train[shuffle_indices]
     y_train = y_train[shuffle_indices]
-    # print("index", shuffle_indices)
-    # print("x", X_train)
-    # print("y", y_train)
 
     # Minibatch training
     for i in range(0, len(y_train) // batch_size):
-        print("i", i)
         start = i * batch_size
         batch_x = X_train[start:start + batch_size]
         batch_y = y_train[start:start + batch_size]
@@ -135,11 +127,13 @@ for e in range(epochs):
 
         # Show progress
         # if np.mod(i, 50) == 0:
+
         # MSE train and test
         mse_train.append(net.run(mse, feed_dict={X: X_train, Y: y_train}))
         mse_test.append(net.run(mse, feed_dict={X: X_test, Y: y_test}))
         print('MSE Train: ', mse_train[-1])
         print('MSE Test: ', mse_test[-1])
+
         # Prediction
         pred = net.run(out, feed_dict={X: X_test})
         line2.set_ydata(pred)
