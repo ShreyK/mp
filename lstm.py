@@ -24,13 +24,13 @@ def create_dataset(dataset):
 np.random.seed(7)
 
 # load the dataset
-df = read_csv('./data/all_eth.csv')
+df = read_csv('./data/all_bitcoin.csv')
 gt = read_csv('./data/GoogleTrends.csv')
 df = df.iloc[::-1]
 df = df.drop(['Date','Open','High','Low','Volume','Market Cap'], axis=1)
 dataset = df.values
 dataset = dataset.astype('float32')
-gt = gt.drop(['Day','bitcoin','Cryptocurrency'],axis=1)
+gt = gt.drop(['Day','ethereum','Cryptocurrency'],axis=1)
 gdataset = gt.values
 gdataset = gdataset.astype('float32')
 
@@ -94,16 +94,15 @@ testPredictPlot = np.empty_like(dataset)
 testPredictPlot[:, :] = np.nan
 testPredictPlot[len(trainPredict):len(dataset)-1, :] = testPredict
 
-print(testPredict)
 # plot baseline and predictions
 plt.plot(scaler.inverse_transform(dataset),label= "Actual Price")
 plt.plot(trainPredictPlot,label = "Training Price")
 plt.plot(testPredictPlot,label="Predicted Price")
-plt.xlabel('Day')
-plt.ylabel('Ethereum Price')
 plt.legend()
+plt.xlabel('Day')
+plt.ylabel('Bitcoin Price')
 ax2 = plt.twinx()
-ax2.plot(gdataset, color="purple", linestyle="dotted", label="Popularity")
-ax2.set_ylabel('Ethereum Trends Popularity')
-ax2.legend()
+ax2.plot(gdataset, color="purple", linestyle="dotted",label="Popularity")
+ax2.set_ylabel('Bitcoin Trends Popularity')
+ax2.legend(loc = "lower right")
 plt.show()
