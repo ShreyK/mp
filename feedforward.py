@@ -15,7 +15,7 @@ def create_dataset(dataset):
   return np.asarray(dataX), np.asarray(dataY)
 
 # Import data
-data = pd.read_csv('./data/all_bitcoin.csv')
+data = pd.read_csv('./data/all_eth.csv')
 
 # Drop date variable
 data = data.drop(['Date'], 1)
@@ -38,21 +38,11 @@ X,y = create_dataset(data)
 #Take 80% of data as the training sample and 20% as testing sample
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, shuffle=False)
 
-# Number of stocks in training data
-print("X_train cols", X_train.shape[1])
-print("X_train rows", X_train.shape[0])
-print("X_test cols", X_test.shape[1])
-print("X_test rows", X_test.shape[0])
-print("y_train cols", y_train.shape[1])
-print("y_train rows", y_train.shape[0])
-print("y_test cols", y_test.shape[1])
-print("y_test rows", y_test.shape[0])
-
 # Neurons
-n_neurons_1 = 2048
-n_neurons_2 = 1024
-n_neurons_3 = 512
-n_neurons_4 = 256
+n_neurons_1 = 256
+n_neurons_2 = 128
+n_neurons_3 = 64
+n_neurons_4 = 32
 
 # Session
 net = tf.InteractiveSession()
@@ -98,29 +88,13 @@ opt = tf.train.AdamOptimizer().minimize(mse)
 # Init
 net.run(tf.global_variables_initializer())
 
-# Setup plot
-# plt.ion()
-# fig = plt.figure()
-# ax1 = fig.add_subplot(111)
-# line1, = ax1.plot(y_test)
-# line2, = ax1.plot(y_test)
-# plt.show()
-
 # Fit neural net
-batch_size = 64
-mse_train = []
-mse_test = []
-
+batch_size = 10
 pred = []
 
 # Run
-epochs = 10
+epochs = 5
 for e in range(epochs):
-  # Shuffle training data
-  shuffle_indices = np.random.permutation(np.arange(len(y_train)))
-  X_train = X_train[shuffle_indices]
-  y_train = y_train[shuffle_indices]
-
   # Minibatch training
   for i in range(0, len(y_train) // batch_size):
     start = i * batch_size
@@ -128,34 +102,15 @@ for e in range(epochs):
     batch_y = y_train[start:start + batch_size]
     # Run optimizer with batch
     net.run(opt, feed_dict={X: batch_x, Y: batch_y})
-
-    # Show progress
-    # if np.mod(i, 50) == 0:
-
-    # MSE train and test
-    mse_train.append(net.run(mse, feed_dict={X: X_train, Y: y_train}))
-    mse_test.append(net.run(mse, feed_dict={X: X_test, Y: y_test}))
-    print('MSE Train: ', mse_train[-1])
-    print('MSE Test: ', mse_test[-1])
-
     # Prediction
     pred = net.run(out, feed_dict={X: X_test})
-    # line2.set_ydata(pred)
-    # plt.title('Epoch ' + str(e) + ', Batch ' + str(i))
-    # plt.pause(.01)
 
 pred = [ [i] for i in pred[0] ]
-# shift train predictions for plotting
-# trainPredictPlot = np.empty_like(data)
-# trainPredictPlot[:, :] = np.nan
-# trainPredictPlot[1:len(trainPredict)+1, :] = trainPredict
-
-# shift test predictions for plotting
-# testPredictPlot = np.empty_like(data)
-# testPredictPlot[:, :] = np.nan
-# testPredictPlot[len(pred):len(data)-1, :] = pred
 
 # plot baseline and predictions
-plt.plot(scaler.inverse_transform(X_test))
-plt.plot(scaler.inverse_transform(pred))
+plt.plot(scaler.inverse_transform(y_test), label="Actual Price")
+plt.plot(scaler.inverse_transform(pred), label="Predicted Price")
+plt.xlabel("Day")
+plt.ylabel("Ethereum Price")
+plt.legend()
 plt.show()
