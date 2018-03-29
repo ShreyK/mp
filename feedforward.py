@@ -15,12 +15,15 @@ def create_dataset(dataset):
   return np.asarray(dataX), np.asarray(dataY)
 
 # Import data
-# data = pd.read_csv('eth.csv')
-data = pd.read_csv('btc.csv')
+data = pd.read_csv('./data/all_bitcoin.csv')
 
 # Drop date variable
-data = data.drop(['DATE'], 1)
-data = data.drop(['market_cap'], 1)
+data = data.drop(['Date'], 1)
+data = data.drop(['Open'], 1)
+data = data.drop(['High'], 1)
+data = data.drop(['Low'], 1)
+data = data.drop(['Volume'], 1)
+data = data.drop(['Market Cap'], 1)
 
 # Make data a np.array
 data = data.values
@@ -96,46 +99,63 @@ opt = tf.train.AdamOptimizer().minimize(mse)
 net.run(tf.global_variables_initializer())
 
 # Setup plot
-plt.ion()
-fig = plt.figure()
-ax1 = fig.add_subplot(111)
-line1, = ax1.plot(y_test)
-line2, = ax1.plot(y_test)
-plt.show()
+# plt.ion()
+# fig = plt.figure()
+# ax1 = fig.add_subplot(111)
+# line1, = ax1.plot(y_test)
+# line2, = ax1.plot(y_test)
+# plt.show()
 
 # Fit neural net
 batch_size = 64
 mse_train = []
 mse_test = []
 
+pred = []
+
 # Run
 epochs = 10
 for e in range(epochs):
+  # Shuffle training data
+  shuffle_indices = np.random.permutation(np.arange(len(y_train)))
+  X_train = X_train[shuffle_indices]
+  y_train = y_train[shuffle_indices]
 
-    # Shuffle training data
-    shuffle_indices = np.random.permutation(np.arange(len(y_train)))
-    X_train = X_train[shuffle_indices]
-    y_train = y_train[shuffle_indices]
+  # Minibatch training
+  for i in range(0, len(y_train) // batch_size):
+    start = i * batch_size
+    batch_x = X_train[start:start + batch_size]
+    batch_y = y_train[start:start + batch_size]
+    # Run optimizer with batch
+    net.run(opt, feed_dict={X: batch_x, Y: batch_y})
 
-    # Minibatch training
-    for i in range(0, len(y_train) // batch_size):
-        start = i * batch_size
-        batch_x = X_train[start:start + batch_size]
-        batch_y = y_train[start:start + batch_size]
-        # Run optimizer with batch
-        net.run(opt, feed_dict={X: batch_x, Y: batch_y})
+    # Show progress
+    # if np.mod(i, 50) == 0:
 
-        # Show progress
-        # if np.mod(i, 50) == 0:
+    # MSE train and test
+    mse_train.append(net.run(mse, feed_dict={X: X_train, Y: y_train}))
+    mse_test.append(net.run(mse, feed_dict={X: X_test, Y: y_test}))
+    print('MSE Train: ', mse_train[-1])
+    print('MSE Test: ', mse_test[-1])
 
-        # MSE train and test
-        mse_train.append(net.run(mse, feed_dict={X: X_train, Y: y_train}))
-        mse_test.append(net.run(mse, feed_dict={X: X_test, Y: y_test}))
-        print('MSE Train: ', mse_train[-1])
-        print('MSE Test: ', mse_test[-1])
+    # Prediction
+    pred = net.run(out, feed_dict={X: X_test})
+    # line2.set_ydata(pred)
+    # plt.title('Epoch ' + str(e) + ', Batch ' + str(i))
+    # plt.pause(.01)
 
-        # Prediction
-        pred = net.run(out, feed_dict={X: X_test})
-        line2.set_ydata(pred)
-        plt.title('Epoch ' + str(e) + ', Batch ' + str(i))
-        plt.pause(.01)
+print(scaler.inverse_transform(np.vstack(pred)))
+# shift train predictions for plotting
+# trainPredictPlot = np.empty_like(data)
+# trainPredictPlot[:, :] = np.nan
+# trainPredictPlot[1:len(trainPredict)+1, :] = trainPredict
+
+# shift test predictions for plotting
+testPredictPlot = np.empty_like(data)
+testPredictPlot[:, :] = np.nan
+# testPredictPlot[len(pred):len(data)-1, :] = pred
+
+# plot baseline and predictions
+# plt.plot(scaler.inverse_transform(data))
+# plt.plot(scaler.inverse_transform(pred))
+# plt.show()

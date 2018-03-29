@@ -24,7 +24,7 @@ def create_dataset(dataset):
 np.random.seed(7)
 
 # load the dataset
-df = read_csv('./data/all_eth.csv')
+df = read_csv('./data/all_bitcoin.csv')
 df = df.iloc[::-1]
 df = df.drop(['Date','Open','High','Low','Volume','Market Cap'], axis=1)
 dataset = df.values
@@ -88,6 +88,7 @@ testPredictPlot = np.empty_like(dataset)
 testPredictPlot[:, :] = np.nan
 testPredictPlot[len(trainPredict):len(dataset)-1, :] = testPredict
 
+print(testPredict)
 # plot baseline and predictions
 plt.plot(scaler.inverse_transform(dataset))
 plt.plot(trainPredictPlot)
