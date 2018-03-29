@@ -144,18 +144,18 @@ for e in range(epochs):
     # plt.title('Epoch ' + str(e) + ', Batch ' + str(i))
     # plt.pause(.01)
 
-print(scaler.inverse_transform(np.vstack(pred)))
+pred = [ [i] for i in pred[0] ]
 # shift train predictions for plotting
 # trainPredictPlot = np.empty_like(data)
 # trainPredictPlot[:, :] = np.nan
 # trainPredictPlot[1:len(trainPredict)+1, :] = trainPredict
 
 # shift test predictions for plotting
-testPredictPlot = np.empty_like(data)
-testPredictPlot[:, :] = np.nan
+# testPredictPlot = np.empty_like(data)
+# testPredictPlot[:, :] = np.nan
 # testPredictPlot[len(pred):len(data)-1, :] = pred
 
 # plot baseline and predictions
-# plt.plot(scaler.inverse_transform(data))
-# plt.plot(scaler.inverse_transform(pred))
-# plt.show()
+plt.plot(scaler.inverse_transform(X_test))
+plt.plot(scaler.inverse_transform(pred))
+plt.show()
