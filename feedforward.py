@@ -1,4 +1,5 @@
 # Import
+import sys
 import tensorflow as tf
 import numpy as np
 import pandas as pd
@@ -7,11 +8,12 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import train_test_split
 
 # convert an array of values into a dataset matrix
-def create_dataset(dataset):
+def create_dataset(dataset, days_in_advance):
   dataX, dataY = [], []
-  for i in range(len(dataset)-1):
-    dataX.append(dataset[i])
-    dataY.append(dataset[i + 1])
+  for i in range(len(dataset)):
+    if (i + days_in_advance < len(dataset)):
+      dataX.append(dataset[i])
+      dataY.append(dataset[i + days_in_advance])
   return np.asarray(dataX), np.asarray(dataY)
 
 # Import data
@@ -33,7 +35,7 @@ scaler = MinMaxScaler(feature_range=(0, 1))
 data = scaler.fit_transform(data)
 
 #prepare the X and Y label
-X,y = create_dataset(data)
+X,y = create_dataset(data, int(sys.argv[1]))
 
 #Take 80% of data as the training sample and 20% as testing sample
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, shuffle=False)

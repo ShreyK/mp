@@ -1,4 +1,5 @@
 # LSTM for closing bitcoin price with regression framing
+import sys
 import numpy as np
 import matplotlib.pyplot as plt
 from pandas import read_csv
@@ -10,14 +11,15 @@ from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
 import math
 import os
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 # convert an array of values into a dataset matrix
-def create_dataset(dataset):
+def create_dataset(dataset, days_in_advance):
   dataX, dataY = [], []
-  for i in range(len(dataset)-1):
-    dataX.append(dataset[i])
-    dataY.append(dataset[i + 1])
+  for i in range(len(dataset)):
+    if (i + days_in_advance < len(dataset)):
+      dataX.append(dataset[i])
+      dataY.append(dataset[i + days_in_advance])
   return np.asarray(dataX), np.asarray(dataY)
 
 # fix random seed for reproducibility
@@ -41,7 +43,7 @@ dataset = scaler.fit_transform(dataset)
 #gdataset = scaler.fit_transform(gdataset)
 
 #prepare the X and Y label
-X,y = create_dataset(dataset)
+X,y = create_dataset(dataset, int(sys.argv[1]))
 
 #Take 80% of data as the training sample and 20% as testing sample
 trainX, testX, trainY, testY = train_test_split(X, y, test_size=0.20, shuffle=False)
