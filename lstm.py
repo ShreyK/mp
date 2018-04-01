@@ -68,43 +68,48 @@ model.save('./savedModel')
 trainPredict = model.predict(trainX)
 testPredict = model.predict(testX)
 
-futurePredict = model.predict(np.asarray([[testPredict[-1]]]))
-futurePredict = scaler.inverse_transform(futurePredict)
-# invert predictions
-trainPredict = scaler.inverse_transform(trainPredict)
-trainY = scaler.inverse_transform(trainY)
-testPredict = scaler.inverse_transform(testPredict)
-testY = scaler.inverse_transform(testY)
-
-print("Price Prediction for last 5 days: ")
-print(testPredict[-5:])
-print("Bitcoin price for tomorrow: ", futurePredict)
-
-# calculate root mean squared error
-trainScore = math.sqrt(mean_squared_error(trainY[:,0], trainPredict[:,0]))
-print('Train Score: %.2f RMSE' % (trainScore))
-testScore = math.sqrt(mean_squared_error(testY[:,0], testPredict[:,0]))
-print('Test Score: %.2f RMSE' % (testScore))
-
-# shift train predictions for plotting
-trainPredictPlot = np.empty_like(dataset)
-trainPredictPlot[:, :] = np.nan
-trainPredictPlot[1:len(trainPredict)+1, :] = trainPredict
-
-# shift test predictions for plotting
-testPredictPlot = np.empty_like(dataset)
-testPredictPlot[:, :] = np.nan
-testPredictPlot[len(trainPredict):len(dataset)-1, :] = testPredict
-
-# plot baseline and predictions
-plt.plot(scaler.inverse_transform(dataset),label= "Actual Price")
-plt.plot(trainPredictPlot,label = "Training Price")
-plt.plot(testPredictPlot,label="Predicted Price")
+plt.plot(scaler.inverse_transform(testY), label= "Actual Price")
+plt.plot(scaler.inverse_transform(testPredict), label="Predicted Price")
 plt.legend()
-plt.xlabel('Day')
-plt.ylabel('Bitcoin Price')
-ax2 = plt.twinx()
-ax2.plot(gdataset, color="purple", linestyle="dotted",label="Popularity")
-ax2.set_ylabel('Bitcoin Trends Popularity')
-ax2.legend(loc = "lower right")
 plt.show()
+
+# futurePredict = model.predict(np.asarray([[testPredict[-1]]]))
+# futurePredict = scaler.inverse_transform(futurePredict)
+# # invert predictions
+# trainPredict = scaler.inverse_transform(trainPredict)
+# trainY = scaler.inverse_transform(trainY)
+# testPredict = scaler.inverse_transform(testPredict)
+# testY = scaler.inverse_transform(testY)
+
+# print("Price Prediction for last 5 days: ")
+# print(testPredict[-5:])
+# print("Bitcoin price for tomorrow: ", futurePredict)
+
+# # calculate root mean squared error
+# trainScore = math.sqrt(mean_squared_error(trainY[:,0], trainPredict[:,0]))
+# print('Train Score: %.2f RMSE' % (trainScore))
+# testScore = math.sqrt(mean_squared_error(testY[:,0], testPredict[:,0]))
+# print('Test Score: %.2f RMSE' % (testScore))
+
+# # shift train predictions for plotting
+# trainPredictPlot = np.empty_like(dataset)
+# trainPredictPlot[:, :] = np.nan
+# trainPredictPlot[1:len(trainPredict)+1, :] = trainPredict
+
+# # shift test predictions for plotting
+# testPredictPlot = np.empty_like(dataset)
+# testPredictPlot[:, :] = np.nan
+# testPredictPlot[len(trainPredict):len(dataset)-1, :] = testPredict
+
+# # plot baseline and predictions
+# plt.plot(scaler.inverse_transform(dataset),label= "Actual Price")
+# plt.plot(trainPredictPlot,label = "Training Price")
+# plt.plot(testPredictPlot,label="Predicted Price")
+# plt.legend()
+# plt.xlabel('Day')
+# plt.ylabel('Bitcoin Price')
+# ax2 = plt.twinx()
+# ax2.plot(gdataset, color="purple", linestyle="dotted",label="Popularity")
+# ax2.set_ylabel('Bitcoin Trends Popularity')
+# ax2.legend(loc = "lower right")
+# plt.show()
