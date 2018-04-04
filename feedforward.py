@@ -15,15 +15,16 @@ def create_dataset(dataset):
   return np.asarray(dataX), np.asarray(dataY)
 
 # Import data
-data = pd.read_csv('./data/all_eth.csv')
+data = pd.read_csv('./data/data_stocks.csv')
 
 # Drop date variable
-data = data.drop(['Date'], 1)
-data = data.drop(['Open'], 1)
-data = data.drop(['High'], 1)
-data = data.drop(['Low'], 1)
-data = data.drop(['Volume'], 1)
-data = data.drop(['Market Cap'], 1)
+data = data.drop(['DATE'], 1)
+# data = data.drop(['Date'], 1)
+# data = data.drop(['Open'], 1)
+# data = data.drop(['High'], 1)
+# data = data.drop(['Low'], 1)
+# data = data.drop(['Volume'], 1)
+# data = data.drop(['Market Cap'], 1)
 
 # Make data a np.array
 data = data.values
@@ -89,7 +90,7 @@ opt = tf.train.AdamOptimizer().minimize(mse)
 net.run(tf.global_variables_initializer())
 
 # Fit neural net
-batch_size = 10
+batch_size = 100
 pred = []
 
 # Run
@@ -107,9 +108,18 @@ for e in range(epochs):
 
 pred = [ [i] for i in pred[0] ]
 
+testPredict = scaler.inverse_transform(pred)
+testY = scaler.inverse_transform(y_test)
+
+acc1 = 1 - abs( (testY[-1] - testPredict[-1] )[0] ) / (testY[-1])[0]
+
+print("Prediction: ", testPredict[-1])
+print("Actual: ", testY[-1])
+print("Accuracy: ", acc1 * 100)
+
 # plot baseline and predictions
-plt.plot(scaler.inverse_transform(y_test), label="Actual Price")
-plt.plot(scaler.inverse_transform(pred), label="Predicted Price")
+plt.plot(testY, label="Actual Price")
+plt.plot(testPredict, label="Predicted Price")
 plt.xlabel("Day")
 plt.ylabel("Ethereum Price")
 plt.legend()

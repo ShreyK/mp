@@ -27,6 +27,7 @@ np.random.seed(7)
 df = read_csv('./data/all_bitcoin.csv')
 df = df.iloc[::-1]
 df = df.drop(['Date','Open','High','Low','Volume','Market Cap'], axis=1)
+# df = df.drop(['DATE'], axis=1)
 dataset = df.values
 dataset = dataset.astype('float32')
 
@@ -44,6 +45,8 @@ trainX, testX, trainY, testY = train_test_split(X, y, test_size=0.20, shuffle=Fa
 trainX = np.reshape(trainX, (trainX.shape[0], 1, trainX.shape[1]))
 testX = np.reshape(testX, (testX.shape[0], 1, testX.shape[1]))
 
+model = load_model('./savedModel')
+
 # create and fit the LSTM network
 model = Sequential()
 model.add(LSTM(256, input_shape=(1, 1)))
@@ -52,17 +55,18 @@ model.compile(loss='mean_squared_error', optimizer='adam')
 model.fit(trainX, trainY, epochs=5, batch_size=10, verbose=2)
 
 # save model for later use
-model.save('./savedModel')
+# model.save('./savedModel')
 #load_model
-# model = load_model('./savedModel')
+# model = load_model('./bitsavedModel')
 
-# make predictions
+# # make predictions
 trainPredict = model.predict(trainX)
 testPredict = model.predict(testX)
 
 futurePredict = model.predict(np.asarray([[testPredict[-1]]]))
 futurePredict = scaler.inverse_transform(futurePredict)
-# invert predictions
+
+# # invert predictions
 trainPredict = scaler.inverse_transform(trainPredict)
 trainY = scaler.inverse_transform(trainY)
 testPredict = scaler.inverse_transform(testPredict)
@@ -89,8 +93,25 @@ testPredictPlot[:, :] = np.nan
 testPredictPlot[len(trainPredict):len(dataset)-1, :] = testPredict
 
 print(testPredict)
+
+acc = 0
+for index,element in enumerate(testY) :
+  acc +=  1 - abs((element - testPredict[index])[0])/element[0]
+acc /= len(testY)
+
+acc2 = 0
+for index,element in enumerate(trainY) :
+  acc2 += 1 - abs((element - trainPredict[index])[0])/element[0]
+acc2 /= len(trainY)
+
+print("Prediction: ", testPredict[-1])
+print("Actual: ", testY[-1])
+print("Training Accuracy: ", acc2 * 100)
+print("Testing Accuracy: ", acc * 100)
+
 # plot baseline and predictions
 plt.plot(scaler.inverse_transform(dataset))
 plt.plot(trainPredictPlot)
 plt.plot(testPredictPlot)
 plt.show()
+
