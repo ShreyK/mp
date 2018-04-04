@@ -1,4 +1,5 @@
 # LSTM for closing bitcoin price with regression framing
+import sys
 import numpy as np
 import matplotlib.pyplot as plt
 from pandas import read_csv
@@ -10,14 +11,15 @@ from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
 import math
 import os
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 # convert an array of values into a dataset matrix
-def create_dataset(dataset):
+def create_dataset(dataset, days_in_advance):
   dataX, dataY = [], []
-  for i in range(len(dataset)-1):
-    dataX.append(dataset[i])
-    dataY.append(dataset[i + 1])
+  for i in range(len(dataset)):
+    if (i + days_in_advance < len(dataset)):
+      dataX.append(dataset[i])
+      dataY.append(dataset[i + days_in_advance])
   return np.asarray(dataX), np.asarray(dataY)
 
 # fix random seed for reproducibility
@@ -25,18 +27,24 @@ np.random.seed(7)
 
 # load the dataset
 df = read_csv('./data/all_bitcoin.csv')
+gt = read_csv('./data/GoogleTrends.csv')
 df = df.iloc[::-1]
 df = df.drop(['Date','Open','High','Low','Volume','Market Cap'], axis=1)
 # df = df.drop(['DATE'], axis=1)
 dataset = df.values
 dataset = dataset.astype('float32')
+gt = gt.drop(['Day','ethereum','Cryptocurrency'],axis=1)
+gdataset = gt.values
+gdataset = gdataset.astype('float32')
+
 
 # normalize the dataset
 scaler = MinMaxScaler(feature_range=(0, 1))
 dataset = scaler.fit_transform(dataset)
+#gdataset = scaler.fit_transform(gdataset)
 
 #prepare the X and Y label
-X,y = create_dataset(dataset)
+X,y = create_dataset(dataset, int(sys.argv[1]))
 
 #Take 80% of data as the training sample and 20% as testing sample
 trainX, testX, trainY, testY = train_test_split(X, y, test_size=0.20, shuffle=False)
@@ -44,8 +52,6 @@ trainX, testX, trainY, testY = train_test_split(X, y, test_size=0.20, shuffle=Fa
 # reshape input to be [samples, time steps, features]
 trainX = np.reshape(trainX, (trainX.shape[0], 1, trainX.shape[1]))
 testX = np.reshape(testX, (testX.shape[0], 1, testX.shape[1]))
-
-model = load_model('./savedModel')
 
 # create and fit the LSTM network
 model = Sequential()
@@ -110,8 +116,14 @@ print("Training Accuracy: ", acc2 * 100)
 print("Testing Accuracy: ", acc * 100)
 
 # plot baseline and predictions
-plt.plot(scaler.inverse_transform(dataset))
-plt.plot(trainPredictPlot)
-plt.plot(testPredictPlot)
+plt.plot(scaler.inverse_transform(dataset),label= "Actual Price")
+plt.plot(trainPredictPlot,label = "Training Price")
+plt.plot(testPredictPlot,label="Predicted Price")
+plt.legend()
+plt.xlabel('Day')
+plt.ylabel('Bitcoin Price')
+ax2 = plt.twinx()
+ax2.plot(gdataset, color="purple", linestyle="dotted",label="Popularity")
+ax2.set_ylabel('Bitcoin Trends Popularity')
+ax2.legend(loc = "lower right")
 plt.show()
-

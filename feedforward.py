@@ -1,4 +1,5 @@
 # Import
+import sys
 import tensorflow as tf
 import numpy as np
 import pandas as pd
@@ -7,24 +8,25 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import train_test_split
 
 # convert an array of values into a dataset matrix
-def create_dataset(dataset):
+def create_dataset(dataset, days_in_advance):
   dataX, dataY = [], []
-  for i in range(len(dataset)-1):
-    dataX.append(dataset[i])
-    dataY.append(dataset[i + 1])
+  for i in range(len(dataset)):
+    if (i + days_in_advance < len(dataset)):
+      dataX.append(dataset[i])
+      dataY.append(dataset[i + days_in_advance])
   return np.asarray(dataX), np.asarray(dataY)
 
 # Import data
-data = pd.read_csv('./data/data_stocks.csv')
+data = pd.read_csv('./data/all_eth.csv')
 
 # Drop date variable
-data = data.drop(['DATE'], 1)
-# data = data.drop(['Date'], 1)
-# data = data.drop(['Open'], 1)
-# data = data.drop(['High'], 1)
-# data = data.drop(['Low'], 1)
-# data = data.drop(['Volume'], 1)
-# data = data.drop(['Market Cap'], 1)
+# data = data.drop(['DATE'], 1)
+data = data.drop(['Date'], 1)
+data = data.drop(['Open'], 1)
+data = data.drop(['High'], 1)
+data = data.drop(['Low'], 1)
+data = data.drop(['Volume'], 1)
+data = data.drop(['Market Cap'], 1)
 
 # Make data a np.array
 data = data.values
@@ -34,7 +36,7 @@ scaler = MinMaxScaler(feature_range=(0, 1))
 data = scaler.fit_transform(data)
 
 #prepare the X and Y label
-X,y = create_dataset(data)
+X,y = create_dataset(data, int(sys.argv[1]))
 
 #Take 80% of data as the training sample and 20% as testing sample
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, shuffle=False)
@@ -90,7 +92,7 @@ opt = tf.train.AdamOptimizer().minimize(mse)
 net.run(tf.global_variables_initializer())
 
 # Fit neural net
-batch_size = 100
+batch_size = 10
 pred = []
 
 # Run
@@ -111,11 +113,14 @@ pred = [ [i] for i in pred[0] ]
 testPredict = scaler.inverse_transform(pred)
 testY = scaler.inverse_transform(y_test)
 
-acc1 = 1 - abs( (testY[-1] - testPredict[-1] )[0] ) / (testY[-1])[0]
+acc = 0
+for index,element in enumerate(testY) :
+  acc +=  1 - abs((element - testPredict[index])[0])/element[0]
+acc /= len(testY)
 
 print("Prediction: ", testPredict[-1])
 print("Actual: ", testY[-1])
-print("Accuracy: ", acc1 * 100)
+print("Accuracy: ", acc * 100)
 
 # plot baseline and predictions
 plt.plot(testY, label="Actual Price")
