@@ -17,10 +17,16 @@ def create_dataset(dataset, days_in_advance):
   return np.asarray(dataX), np.asarray(dataY)
 
 # Import data
-data = pd.read_csv('./data/all_eth.csv')
+# data = pd.read_csv('./data/all_eth.csv')
+data = pd.read_csv('./data/all_bitcoin.csv')
+# data = pd.read_csv('./data/data_stocks.csv')
 
-# Drop date variable
+# Drop variables
+
+## data_stocks:
 # data = data.drop(['DATE'], 1)
+
+## all_eth && all_bitcoin
 data = data.drop(['Date'], 1)
 data = data.drop(['Open'], 1)
 data = data.drop(['High'], 1)
@@ -110,6 +116,7 @@ for e in range(epochs):
 
 pred = [ [i] for i in pred[0] ]
 
+#Inverse Transform the predicted and testing data outputs to get accuracy
 testPredict = scaler.inverse_transform(pred)
 testY = scaler.inverse_transform(y_test)
 

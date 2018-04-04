@@ -1,5 +1,7 @@
-# LSTM for closing bitcoin price with regression framing
+# Import
+import os
 import sys
+import math
 import numpy as np
 import matplotlib.pyplot as plt
 from pandas import read_csv
@@ -9,9 +11,6 @@ from keras.layers import LSTM
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
-import math
-import os
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 # convert an array of values into a dataset matrix
 def create_dataset(dataset, days_in_advance):
@@ -27,16 +26,22 @@ np.random.seed(7)
 
 # load the dataset
 df = read_csv('./data/all_bitcoin.csv')
+# df = read_csv('./data/all_eth.csv')
+# df = read_csv('./data/data_stocks.csv')
 gt = read_csv('./data/GoogleTrends.csv')
 df = df.iloc[::-1]
+## all_eth && all_bitcoin
 df = df.drop(['Date','Open','High','Low','Volume','Market Cap'], axis=1)
+## data_stocks
 # df = df.drop(['DATE'], axis=1)
 dataset = df.values
 dataset = dataset.astype('float32')
+## all_bitcoin
 gt = gt.drop(['Day','ethereum','Cryptocurrency'],axis=1)
+## all_eth
+# gt = gt.drop(['Day','bitcoin','Cryptocurrency'],axis=1)
 gdataset = gt.values
 gdataset = gdataset.astype('float32')
-
 
 # normalize the dataset
 scaler = MinMaxScaler(feature_range=(0, 1))
@@ -62,7 +67,7 @@ model.fit(trainX, trainY, epochs=5, batch_size=10, verbose=2)
 
 # save model for later use
 # model.save('./savedModel')
-#load_model
+# load_model
 # model = load_model('./bitsavedModel')
 
 # # make predictions
@@ -100,20 +105,21 @@ testPredictPlot[len(trainPredict):len(dataset)-1, :] = testPredict
 
 print(testPredict)
 
-acc = 0
+# calculate accuracies
+testAcc = 0
 for index,element in enumerate(testY) :
-  acc +=  1 - abs((element - testPredict[index])[0])/element[0]
-acc /= len(testY)
+  testAcc +=  1 - abs((element - testPredict[index])[0])/element[0]
+testAcc /= len(testY)
 
-acc2 = 0
+trainAcc = 0
 for index,element in enumerate(trainY) :
-  acc2 += 1 - abs((element - trainPredict[index])[0])/element[0]
-acc2 /= len(trainY)
+  trainAcc += 1 - abs((element - trainPredict[index])[0])/element[0]
+trainAcc /= len(trainY)
 
 print("Prediction: ", testPredict[-1])
 print("Actual: ", testY[-1])
-print("Training Accuracy: ", acc2 * 100)
-print("Testing Accuracy: ", acc * 100)
+print("Training Accuracy: ", trainAcc * 100)
+print("Testing Accuracy: ", testAcc * 100)
 
 # plot baseline and predictions
 plt.plot(scaler.inverse_transform(dataset),label= "Actual Price")
@@ -121,9 +127,16 @@ plt.plot(trainPredictPlot,label = "Training Price")
 plt.plot(testPredictPlot,label="Predicted Price")
 plt.legend()
 plt.xlabel('Day')
+# all_bitcoin
 plt.ylabel('Bitcoin Price')
+# all_eth
+# plt.ylabel('Ethereum Price')
+# plot google trends
 ax2 = plt.twinx()
 ax2.plot(gdataset, color="purple", linestyle="dotted",label="Popularity")
+# all_bitcoin
 ax2.set_ylabel('Bitcoin Trends Popularity')
+# all_eth
+# ax2.set_ylabel('Ethereum Trends Popularity')
 ax2.legend(loc = "lower right")
 plt.show()
